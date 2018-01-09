@@ -1,0 +1,7 @@
+{
+  "name": "TemplateStore",
+  "short_name": "TemplateStore",
+  "description": "an online store featuring html website templates",
+  "start_url": "/",
+  "display": "standalone"
+}

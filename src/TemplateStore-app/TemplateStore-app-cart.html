@@ -1,0 +1,147 @@
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+
+<dom-module id="templatestore-app-cart">
+    <template>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+        <style>
+
+            :host {
+                display: block;
+            }
+            .container{
+                @apply(--layout-flex);
+            }
+            iron-list {
+                flex-direction: row;
+                height: 100vh;
+                width: 100vw;
+            }
+            paper-card{
+                background-color: white;
+                border-radius: 8px;
+                width: 30%;
+                margin: 5vw 5vw 5vw 5vw;
+            }
+            paper-button{
+                margin: 16px;
+            }
+            .item{
+                padding: 8px;
+            }
+            .test{
+                border: 3px red;
+            }
+            .templatePic {
+              width: 90%;
+            }
+            .customRed {
+              background-color: #DA3849;
+              border-radius: .25rem;
+              color: white;
+              width: 19vw;
+            }
+            .content {
+              margin-left: 20px;
+              font-weight: bold;
+            }
+            ul {
+              list-style: none;
+            }
+        </style>
+
+        <firebase-app id="myFireApp"
+                       api-key="AIzaSyCMnPwWwViwYiCYPHWgw9oycdoq2yo-jo0"
+                       auth-domain="templatestore-cis371.firebaseapp.com"
+                       database-url="https://templatestore-cis371.firebaseio.com"
+                       project-id="templatestore-cis371"
+                       storage-bucket="templatestore-cis371.appspot.com"></firebase-app>
+        <firebase-auth user="{{user}}"></firebase-auth>
+        <firebase-query path="/users/[[user.uid]]/cart" data="{{cartData}}"></firebase-query>
+        <paper-card heading="Items">
+        <iron-list items="[[cartData]]" as="cart">
+            <template>
+                <ul>
+                  <div class="item layout horizontal wrap">
+                      <li>
+                        <div class="content">
+                          <p>Item: [[cart.name]]</p>
+                          <p>Cost: $[[cart.cost]]</p>
+                          <p>Source: [[cart.source]]</p>
+                        </div>
+                        <div class="card-actions">
+                          <paper-button raised class="customRed" on-click="removeFromCart"><iron-icon icon="icons:add-shopping-cart"></iron-icon>Remove from Cart</paper-button>
+                        </div>
+                      </li>
+                    </div>
+                  </ul>
+                </paper-card>
+            </template>
+        </iron-list>
+        </paper-card>
+
+
+        <!--- We probably dont want to allow anyone to add new templates. Templates can be added in firebase console
+        <paper-dialog id="newTemplate" modal on-iron-overlay-closed="diaClosed">
+            <paper-input id="nameInput" label="Name"></paper-input>
+            <paper-input id="costInput" label="Cost"></paper-input>
+            <paper-input id="sourceInput" label="Source"></paper-input>
+            <div class="buttons">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button dialog-confirm> Add</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-button raised id="diaBtn" on-click="addNewTemplate">Add New</paper-button>
+        --->
+    </template>
+
+    <script>/**
+     * @customElement
+     * @polymer
+     */
+
+
+    class TemplateStoreAppCart extends Polymer.Element {
+            constructor() {
+                super();
+            }
+            static get is() {
+                return 'templatestore-app-cart';
+            }
+            diaClosed(){
+                if (this.$.newTemplate.closingReason.confirmed) {
+                    var dbRef = this.$.myFireApp.app.database();
+                    dbRef.ref('/templates/').push().set({
+                        name: this.$.nameInput.value,
+                        cost: this.$.costInput.value,
+                        source: this.$.sourceInput.value
+                    });
+                }
+            }
+            addNewTemplate() {
+                this.$.newTemplate.open();
+            }
+            removeFromCart(ev){
+                var dbRef = this.$.myFireApp.app.database();
+                var uid = firebase.auth().currentUser.uid;
+                console.log(uid);
+                console.log('/users/' + uid + '/cart/' + ev.model.cart.$key);
+                dbRef.ref('/users/' + uid + '/cart/' + ev.model.cart.$key + '/').remove();
+            }
+        }
+        window.customElements.define(TemplateStoreAppCart.is, TemplateStoreAppCart);
+    </script>
+
+</dom-module>
